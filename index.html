@@ -75,11 +75,12 @@
             resultContainer.classList.remove("hidden");
 
             try {
-                const res = await fetch("http://127.0.0.1:8000/generate_prompt", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ problem })
-                });
+                const res = await fetch("https://auto-prompt-engineer-backend.onrender.com/generate_prompt", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ problem })
+            });
+
 
                 const data = await res.json();
                 if (data.structured_prompt) {
