@@ -1,0 +1,113 @@
+<!-- frontend/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Auto Prompt Engineer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-gradient-to-b from-indigo-50 to-purple-50 font-sans">
+
+    <div class="max-w-7xl mx-auto px-4 py-12">
+        <!-- Header -->
+        <h1 class="text-4xl md:text-5xl font-extrabold text-center bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-3">
+            Auto Prompt Engineer
+        </h1>
+        <p class="text-center text-gray-600 mb-10">
+            ✨ <span class="font-semibold">Your Buddy Promptor</span> – Converts your ideas & queries into the best prompt your AI agent understands.
+        </p>
+
+        <!-- Main Card -->
+        <div class="bg-white rounded-2xl shadow-lg p-8 max-w-3xl mx-auto">
+            <h3 class="text-lg font-semibold text-gray-700 mb-4">Describe Your Problem</h3>
+            
+            <textarea 
+                id="problem" 
+                rows="5" 
+                class="w-full p-4 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 transition" 
+                placeholder="Type your problem here..."
+            ></textarea>
+            
+            <button 
+                onclick="generatePrompt()" 
+                class="w-full mt-6 py-3 px-6 bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-semibold rounded-xl shadow-md hover:shadow-lg hover:from-indigo-600 hover:to-purple-600 transition"
+            >
+                Generate Prompt
+            </button>
+
+            <!-- Result Container -->
+            <div 
+                id="resultContainer" 
+                class="mt-8 hidden"
+            >
+                <div class="flex justify-between items-center mb-2">
+                    <h4 class="text-lg font-semibold text-gray-700">Generated Prompt</h4>
+                    <button 
+                        onclick="copyToClipboard()" 
+                        id="copyBtn"
+                        class="text-sm px-3 py-1 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition"
+                    >
+                        Copy
+                    </button>
+                </div>
+                <div 
+                    id="result" 
+                    class="p-6 bg-gradient-to-b from-gray-50 to-gray-100 border border-gray-200 rounded-xl shadow-inner whitespace-pre-wrap font-mono text-sm"
+                ></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function generatePrompt() {
+            const problem = document.getElementById("problem").value.trim();
+            const resultContainer = document.getElementById("resultContainer");
+            const resultDiv = document.getElementById("result");
+
+            if (!problem) {
+                resultDiv.innerHTML = "<span class='text-red-500 font-semibold'>Please enter a problem description.</span>";
+                resultContainer.classList.remove("hidden");
+                return;
+            }
+
+            resultDiv.innerHTML = "Generating...";
+            resultContainer.classList.remove("hidden");
+
+            try {
+                const res = await fetch("http://127.0.0.1:8000/generate_prompt", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ problem })
+                });
+
+                const data = await res.json();
+                if (data.structured_prompt) {
+                    resultDiv.textContent = data.structured_prompt;
+                } else {
+                    resultDiv.innerHTML = `<span class="text-red-500">Error: ${data.error}</span>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="text-red-500">Request failed: ${error.message}</span>`;
+            }
+        }
+
+        function copyToClipboard() {
+            const resultText = document.getElementById("result").textContent;
+            navigator.clipboard.writeText(resultText)
+                .then(() => {
+                    const btn = document.getElementById("copyBtn");
+                    btn.textContent = "Copied!";
+                    btn.classList.replace("bg-indigo-500", "bg-green-500");
+                    setTimeout(() => {
+                        btn.textContent = "Copy";
+                        btn.classList.replace("bg-green-500", "bg-indigo-500");
+                    }, 2000);
+                })
+                .catch(err => {
+                    alert("Failed to copy: " + err);
+                });
+        }
+    </script>
+</body>
+</html>
